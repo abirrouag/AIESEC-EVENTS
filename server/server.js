@@ -14,13 +14,21 @@ const app = express();
 
 // Middlewares
 // 1. Enable CORS (Cross-Origin Resource Sharing)
-const allowedOrigins = process.env.CLIENT_URL
-  ? [process.env.CLIENT_URL, 'http://localhost:5173', 'http://127.0.0.1:5173']
-  : '*';
-
 app.use(
   cors({
-    origin: allowedOrigins === '*' ? '*' : allowedOrigins,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like Postman, curl, server-to-server)
+      if (!origin) return callback(null, true);
+      
+      const configuredClient = process.env.CLIENT_URL ? process.env.CLIENT_URL.replace(/\/$/, '') : null;
+      const localOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:3000'];
+
+      // Allow local dev, configured client URL, and Vercel deployments
+      if (!configuredClient || configuredClient === '*' || origin === configuredClient || localOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
     credentials: true
   })
 );

@@ -51,6 +51,38 @@ router.post('/', protect, async (req, res) => {
   }
 });
 
+// @route   PUT /api/events/:id
+// @desc    Update an event (only the author can update their own event)
+// @access  Protected
+router.put('/:id', protect, async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+
+    // Check if event exists
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    // Check if logged-in user is the author
+    if (event.author.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Not authorized: you can only edit your own events' });
+    }
+
+    const { title, description, date } = req.body;
+    if (title) event.title = title;
+    if (description) event.description = description;
+    if (date) event.date = date;
+
+    await event.save();
+    await event.populate('author', 'name');
+
+    return res.status(200).json(event);
+  } catch (error) {
+    console.error('Update event error:', error);
+    return res.status(500).json({ message: 'Server error updating event' });
+  }
+});
+
 // @route   DELETE /api/events/:id
 // @desc    Delete an event (only the author can delete their own event)
 // @access  Protected
