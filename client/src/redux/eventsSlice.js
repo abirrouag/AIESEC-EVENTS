@@ -81,3 +81,4 @@ const eventsSlice = createSlice({
 
 export const { clearEventsError } = eventsSlice.actions;
 export default eventsSlice.reducer;
+
