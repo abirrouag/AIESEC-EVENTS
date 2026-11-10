@@ -40,7 +40,8 @@ AIESEC Hub enables local committees to publish **events** (leadership workshops,
 | **Database** | MongoDB Atlas / Local MongoDB + Mongoose | Data modeling, validation, and persistence |
 | **Backend** | Node.js + Express.js | RESTful API server, routing, and controllers |
 | **Authentication**| JSON Web Tokens (JWT) + bcryptjs | Secure password hashing & stateless token auth |
-| **Frontend** | React 18 + Vite | Single Page Application (SPA), React hooks |
+| **Frontend** | React 18 + Vite | Single Page Application (SPA) |
+| **State Management** | Redux Toolkit (RTK) + React-Redux | Global store, async thunks, auth & events slices |
 | **HTTP Client** | Axios | Request interceptor attaching `Bearer <token>` |
 | **Styling** | Clean Pure CSS | Responsive, AIESEC Blue `#037EF3` branding |
 
@@ -261,9 +262,10 @@ Here is a summary of the most common questions asked during the project defense:
 - When the user logs in, the token and user profile are saved in browser `localStorage`.
 - When the user refreshes or reopens the page, `App.jsx` reads `localStorage.getItem('user')` during state initialization, keeping the user logged in until they click "Logout".
 
-### 8. Example live modification: Add a "location" field to Event
-1. In `server/models/Event.js`: Add `location: { type: String, required: true }`.
-2. In `server/routes/events.js`: Extract `const { title, description, date, location } = req.body;` and pass it to `Event.create({ ... })`.
-3. In `client/src/components/EventForm.jsx`: Add `const [location, setLocation] = useState('');` and a form input field.
-4. In `client/src/components/EventCard.jsx`: Render `📍 {event.location}` in the card.
+### 9. How does Redux Toolkit (RTK) manage state in this project?
+- **Single Store (`src/redux/store.js`):** Combines `authReducer` and `eventsReducer` configured via `configureStore()`.
+- **Slices & Reducers (`authSlice.js`, `eventsSlice.js`):** Created with `createSlice()` encapsulating state, sync reducers (`logout`, `clearError`), and `extraReducers` for async states.
+- **Async Thunks (`createAsyncThunk`):** Handles asynchronous API operations (`loginUser`, `registerUser`, `fetchEvents`, `createEvent`, `deleteEvent`) dispatching `pending`, `fulfilled`, and `rejected` lifecycle actions.
+- **Component Hooks:** Components consume state via `useSelector((state) => state.auth)` and trigger actions via `useDispatch()`.
+- **Provider:** The root component in `src/main.jsx` is wrapped in `<Provider store={store}>` making the Redux store available to all components.
 

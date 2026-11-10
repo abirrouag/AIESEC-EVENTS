@@ -77,7 +77,8 @@ Le projet adopte l'architecture standard et éprouvée **MERN** (MongoDB, Expres
 ### Justification des choix technologiques :
 - **Node.js & Express.js :** Environnement asynchrone idéal pour bâtir des API REST légères, modulaires et rapides.
 - **MongoDB & Mongoose :** Base NoSQL orientée documents offrant une grande flexibilité de schéma, complétée par la rigueur de validation et la puissance de population relationnelle (`ref` / `.populate()`) de Mongoose.
-- **React 18 & Vite :** Vite offre un temps de démarrage quasi-instantané via les modules ES natifs. L'utilisation exclusive des hooks natifs (`useState`, `useEffect`) garantit un code sans dépendances superflues (ni Redux, ni TypeScript), très facile à auditer et à expliquer lors de la soutenance.
+- **React 18 & Vite :** Vite offre un temps de démarrage quasi-instantané via les modules ES natifs.
+- **Redux Toolkit (RTK) & React-Redux :** Gestion centralisée et prédictive de l'état global (authentification, session membre et liste des événements) via `configureStore`, `createSlice` et `createAsyncThunk`.
 - **Axios & Intercepteur :** Centralisation de la configuration HTTP et injection automatique du jeton d'authentification Bearer.
 
 ---
