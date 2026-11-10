@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
-import api from '../api';
+import { useDispatch } from 'react-redux';
+import { createEvent } from '../redux/eventsSlice';
 
-// EventForm component: controlled form to create a new AIESEC event
-function EventForm({ onEventCreated }) {
+// EventForm component: controlled form dispatching createEvent Redux thunk
+function EventForm() {
+  const dispatch = useDispatch();
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState('');
@@ -24,24 +27,21 @@ function EventForm({ onEventCreated }) {
       setError('');
       setSuccess('');
 
-      // Send POST request with token automatically added by api interceptor
-      const response = await api.post('/events', {
-        title,
-        description,
-        date
-      });
+      // Dispatch Redux thunk
+      const resultAction = await dispatch(createEvent({ title, description, date }));
 
-      setSuccess('Event published successfully!');
-      // Notify parent component to update events state
-      onEventCreated(response.data);
-
-      // Reset form fields
-      setTitle('');
-      setDescription('');
-      setDate('');
+      if (createEvent.fulfilled.match(resultAction)) {
+        setSuccess('Event published successfully!');
+        // Reset form fields
+        setTitle('');
+        setDescription('');
+        setDate('');
+      } else {
+        setError(resultAction.payload || 'Failed to create event');
+      }
     } catch (err) {
       console.error('Failed to create event:', err);
-      setError(err.response?.data?.message || 'Error creating event');
+      setError('Error creating event');
     } finally {
       setLoading(false);
     }
@@ -105,4 +105,3 @@ function EventForm({ onEventCreated }) {
 }
 
 export default EventForm;
-

@@ -1,31 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { logout } from './redux/authSlice';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 
-// Main Application component managing global user authentication state and page navigation
+// Main Application component managing page navigation and accessing Redux state
 function App() {
-  // State for logged-in user: initialized from localStorage if available
-  const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem('user');
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
+  const dispatch = useDispatch();
+
+  // Access user from Redux store
+  const user = useSelector((state) => state.auth.user);
 
   // Current page state: 'home' | 'login' | 'register'
   const [currentPage, setCurrentPage] = useState('home');
 
-  // Handle successful login or registration
-  const handleAuthSuccess = (userData, token) => {
-    setUser(userData);
-    setCurrentPage('home');
-  };
-
-  // Handle logout: clear localStorage and reset user state
+  // Handle logout via Redux action
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
+    dispatch(logout());
     setCurrentPage('home');
   };
 
@@ -50,14 +43,14 @@ function App() {
 
         {currentPage === 'login' && (
           <Login
-            onLoginSuccess={handleAuthSuccess}
+            onLoginSuccess={() => setCurrentPage('home')}
             onNavigate={setCurrentPage}
           />
         )}
 
         {currentPage === 'register' && (
           <Register
-            onRegisterSuccess={handleAuthSuccess}
+            onRegisterSuccess={() => setCurrentPage('home')}
             onNavigate={setCurrentPage}
           />
         )}
@@ -67,4 +60,3 @@ function App() {
 }
 
 export default App;
-

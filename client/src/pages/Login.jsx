@@ -1,43 +1,35 @@
 import React, { useState } from 'react';
-import api from '../api';
+import { useDispatch, useSelector } from 'react-redux';
+import { loginUser, clearError } from '../redux/authSlice';
 
-// Login page: authenticates existing members and stores JWT in localStorage
+// Login page: authenticates existing members via Redux Toolkit thunk
 function Login({ onLoginSuccess, onNavigate }) {
+  const dispatch = useDispatch();
+  const { loading, error } = useSelector((state) => state.auth);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [localError, setLocalError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !password) {
-      setError('Please fill in both email and password');
+      setLocalError('Please fill in both email and password');
       return;
     }
 
-    try {
-      setLoading(true);
-      setError('');
+    setLocalError('');
+    dispatch(clearError());
 
-      // Send login credentials to backend
-      const response = await api.post('/auth/login', {
-        email,
-        password
-      });
+    // Dispatch Redux thunk
+    const resultAction = await dispatch(loginUser({ email, password }));
 
-      // Save token and user in localStorage
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-
-      // Pass user and token to parent App state
-      onLoginSuccess(response.data.user, response.data.token);
-    } catch (err) {
-      console.error('Login error:', err);
-      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
-    } finally {
-      setLoading(false);
+    if (loginUser.fulfilled.match(resultAction)) {
+      onLoginSuccess();
     }
   };
+
+  const displayError = localError || error;
 
   return (
     <div className="auth-wrapper">
@@ -47,7 +39,7 @@ function Login({ onLoginSuccess, onNavigate }) {
           <p>Access your AIESEC Hub member account</p>
         </div>
 
-        {error && <div className="alert alert-error">{error}</div>}
+        {displayError && <div className="alert alert-error">{displayError}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
@@ -85,7 +77,7 @@ function Login({ onLoginSuccess, onNavigate }) {
 
         <div className="auth-footer">
           Don't have an account yet?{' '}
-          <button onClick={() => onNavigate('register')}>
+          <button onClick={() => { dispatch(clearError()); onNavigate('register'); }}>
             Register here
           </button>
         </div>
@@ -95,4 +87,3 @@ function Login({ onLoginSuccess, onNavigate }) {
 }
 
 export default Login;
-

@@ -1,45 +1,36 @@
 import React, { useState } from 'react';
-import api from '../api';
+import { useDispatch, useSelector } from 'react-redux';
+import { registerUser, clearError } from '../redux/authSlice';
 
-// Register page: creates a new member account
+// Register page: creates a new member account via Redux Toolkit thunk
 function Register({ onRegisterSuccess, onNavigate }) {
+  const dispatch = useDispatch();
+  const { loading, error } = useSelector((state) => state.auth);
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [localError, setLocalError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name || !email || !password) {
-      setError('Please fill in all fields');
+      setLocalError('Please fill in all fields');
       return;
     }
 
-    try {
-      setLoading(true);
-      setError('');
+    setLocalError('');
+    dispatch(clearError());
 
-      // Send registration payload to backend
-      const response = await api.post('/auth/register', {
-        name,
-        email,
-        password
-      });
+    // Dispatch Redux thunk
+    const resultAction = await dispatch(registerUser({ name, email, password }));
 
-      // Save token and user in localStorage
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-
-      // Pass user and token to parent App state
-      onRegisterSuccess(response.data.user, response.data.token);
-    } catch (err) {
-      console.error('Registration error:', err);
-      setError(err.response?.data?.message || 'Registration failed. Try again.');
-    } finally {
-      setLoading(false);
+    if (registerUser.fulfilled.match(resultAction)) {
+      onRegisterSuccess();
     }
   };
+
+  const displayError = localError || error;
 
   return (
     <div className="auth-wrapper">
@@ -49,7 +40,7 @@ function Register({ onRegisterSuccess, onNavigate }) {
           <p>Join AIESEC Hub as a member</p>
         </div>
 
-        {error && <div className="alert alert-error">{error}</div>}
+        {displayError && <div className="alert alert-error">{displayError}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
@@ -99,7 +90,7 @@ function Register({ onRegisterSuccess, onNavigate }) {
 
         <div className="auth-footer">
           Already registered?{' '}
-          <button onClick={() => onNavigate('login')}>
+          <button onClick={() => { dispatch(clearError()); onNavigate('login'); }}>
             Sign in here
           </button>
         </div>
@@ -109,4 +100,3 @@ function Register({ onRegisterSuccess, onNavigate }) {
 }
 
 export default Register;
-

@@ -1,51 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import api from '../api';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchEvents, deleteEvent } from '../redux/eventsSlice';
 import EventCard from '../components/EventCard';
 import EventForm from '../components/EventForm';
 
-// Home page: lists all events and allows members to publish new ones
+// Home page: lists all events connected to Redux Toolkit store
 function Home({ currentUser, onNavigate }) {
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const dispatch = useDispatch();
+  const { items: events, loading, error } = useSelector((state) => state.events);
 
-  // Fetch all events on initial load using useEffect
+  // Fetch all events on initial mount via Redux thunk
   useEffect(() => {
-    fetchEvents();
-  }, []);
+    dispatch(fetchEvents());
+  }, [dispatch]);
 
-  const fetchEvents = async () => {
-    try {
-      setLoading(true);
-      setError('');
-      const response = await api.get('/events');
-      setEvents(response.data);
-    } catch (err) {
-      console.error('Failed to fetch events:', err);
-      setError('Unable to load events from the server.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Callback passed to EventForm when a new event is created
-  const handleEventCreated = (newEvent) => {
-    // Add new event to the list
-    setEvents([newEvent, ...events]);
-  };
-
-  // Callback to delete an event
+  // Handle delete via Redux thunk
   const handleDeleteEvent = async (eventId) => {
     if (!window.confirm('Are you sure you want to delete this event?')) return;
-
-    try {
-      await api.delete(`/events/${eventId}`);
-      // Remove deleted event from state
-      setEvents(events.filter((item) => item._id !== eventId));
-    } catch (err) {
-      console.error('Failed to delete event:', err);
-      alert(err.response?.data?.message || 'Failed to delete event');
-    }
+    dispatch(deleteEvent(eventId));
   };
 
   return (
@@ -61,7 +33,7 @@ function Home({ currentUser, onNavigate }) {
 
       {/* Conditional rendering for Members: Event creation form */}
       {currentUser ? (
-        <EventForm onEventCreated={handleEventCreated} />
+        <EventForm />
       ) : (
         <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
           <div>
@@ -81,7 +53,7 @@ function Home({ currentUser, onNavigate }) {
         <h2 style={{ fontSize: '1.4rem' }}>Upcoming Events ({events.length})</h2>
         <button
           className="btn btn-outline btn-small"
-          onClick={fetchEvents}
+          onClick={() => dispatch(fetchEvents())}
           title="Refresh list"
         >
           🔄 Refresh
@@ -119,4 +91,3 @@ function Home({ currentUser, onNavigate }) {
 }
 
 export default Home;
-
