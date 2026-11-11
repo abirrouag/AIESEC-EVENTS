@@ -7,6 +7,10 @@ export const fetchEvents = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await api.get('/events');
+      // Ensure the response is actually an array
+      if (!Array.isArray(response.data)) {
+        return rejectWithValue('Server returned non-array data. Check VITE_API_URL.');
+      }
       return response.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || 'Unable to load events');
@@ -62,7 +66,7 @@ const eventsSlice = createSlice({
       })
       .addCase(fetchEvents.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload;
+        state.items = Array.isArray(action.payload) ? action.payload : [];
       })
       .addCase(fetchEvents.rejected, (state, action) => {
         state.loading = false;

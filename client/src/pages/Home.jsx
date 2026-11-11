@@ -20,6 +20,9 @@ function Home({ currentUser, onNavigate }) {
     dispatch(deleteEvent(eventId));
   };
 
+  // Ensure events is always an array
+  const safeEvents = Array.isArray(events) ? events : [];
+
   return (
     <div>
       {/* Banner introduction */}
@@ -50,7 +53,7 @@ function Home({ currentUser, onNavigate }) {
 
       {/* Events section title */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <h2 style={{ fontSize: '1.4rem' }}>Upcoming Events ({events.length})</h2>
+        <h2 style={{ fontSize: '1.4rem' }}>Upcoming Events ({safeEvents.length})</h2>
         <button
           className="btn btn-outline btn-small"
           onClick={() => dispatch(fetchEvents())}
@@ -70,7 +73,7 @@ function Home({ currentUser, onNavigate }) {
       )}
 
       {/* Empty state */}
-      {!loading && events.length === 0 && (
+      {!loading && safeEvents.length === 0 && (
         <div className="card empty-state">
           <h3>No events found</h3>
           <p>There are no events scheduled yet. Be the first to create one!</p>
@@ -78,7 +81,7 @@ function Home({ currentUser, onNavigate }) {
       )}
 
       {/* List of events */}
-      {!loading && events.map((event) => (
+      {!loading && safeEvents.map((event) => (
         <EventCard
           key={event._id}
           event={event}
