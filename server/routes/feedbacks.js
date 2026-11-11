@@ -1,85 +1,25 @@
 const express = require('express');
 const router = express.Router();
-const Feedback = require('../models/Feedback');
-const Event = require('../models/Event');
+const {
+  getFeedbacks,
+  createFeedback,
+  deleteFeedback
+} = require('../controllers/feedbackController');
 const protect = require('../middleware/protect');
 
 // @route   GET /api/feedbacks/:eventId
 // @desc    Get all feedbacks for a specific event
 // @access  Public
-router.get('/:eventId', async (req, res) => {
-  try {
-    const feedbacks = await Feedback.find({ event: req.params.eventId })
-      .populate('author', 'name')
-      .sort({ createdAt: -1 });
-
-    return res.status(200).json(feedbacks);
-  } catch (error) {
-    console.error('Fetch feedbacks error:', error);
-    return res.status(500).json({ message: 'Server error fetching feedbacks' });
-  }
-});
+router.get('/:eventId', getFeedbacks);
 
 // @route   POST /api/feedbacks
 // @desc    Add feedback to an event
 // @access  Protected (logged-in members only)
-router.post('/', protect, async (req, res) => {
-  try {
-    const { text, eventId } = req.body;
-
-    // Validate inputs
-    if (!text || !eventId) {
-      return res.status(400).json({ message: 'Please provide feedback text and eventId' });
-    }
-
-    // Verify the event exists
-    const event = await Event.findById(eventId);
-    if (!event) {
-      return res.status(404).json({ message: 'Event not found' });
-    }
-
-    // Create feedback
-    const feedback = await Feedback.create({
-      text,
-      event: eventId,
-      author: req.user._id
-    });
-
-    // Populate author name before returning
-    await feedback.populate('author', 'name');
-
-    return res.status(201).json(feedback);
-  } catch (error) {
-    console.error('Create feedback error:', error);
-    return res.status(500).json({ message: 'Server error creating feedback' });
-  }
-});
+router.post('/', protect, createFeedback);
 
 // @route   DELETE /api/feedbacks/:id
-// @desc    Delete a feedback (only the author can delete their own feedback)
+// @desc    Delete a feedback (only author can delete)
 // @access  Protected
-router.delete('/:id', protect, async (req, res) => {
-  try {
-    const feedback = await Feedback.findById(req.params.id);
-
-    // Check if feedback exists
-    if (!feedback) {
-      return res.status(404).json({ message: 'Feedback not found' });
-    }
-
-    // Check if logged-in user is the author
-    if (feedback.author.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Not authorized: you can only delete your own feedback' });
-    }
-
-    await feedback.deleteOne();
-
-    return res.status(200).json({ message: 'Feedback removed successfully' });
-  } catch (error) {
-    console.error('Delete feedback error:', error);
-    return res.status(500).json({ message: 'Server error deleting feedback' });
-  }
-});
+router.delete('/:id', protect, deleteFeedback);
 
 module.exports = router;
-

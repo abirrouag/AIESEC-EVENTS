@@ -56,10 +56,14 @@ aiesec/
 │   │   ├── User.js          # User schema (name, email, password)
 │   │   ├── Event.js         # Event schema (title, description, date, author)
 │   │   └── Feedback.js      # Feedback schema (text, event, author, createdAt)
+│   ├── controllers/
+│   │   ├── authController.js     # Auth logic (register, login, JWT)
+│   │   ├── eventController.js    # Events CRUD logic
+│   │   └── feedbackController.js # Feedbacks CRUD logic
 │   ├── routes/
-│   │   ├── auth.js          # POST /register, POST /login
-│   │   ├── events.js        # GET, POST, DELETE /api/events
-│   │   └── feedbacks.js     # GET, POST, DELETE /api/feedbacks
+│   │   ├── auth.js          # Auth routes declaration
+│   │   ├── events.js        # Events routes declaration
+│   │   └── feedbacks.js     # Feedbacks routes declaration
 │   ├── middleware/
 │   │   └── protect.js       # JWT verification middleware
 │   ├── .env.example         # Example server environment configuration
